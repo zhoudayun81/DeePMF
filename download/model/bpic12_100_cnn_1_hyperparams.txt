@@ -1,0 +1,1 @@
+optimizer, loss_function, learning_rate, epochs, hidden_size
