@@ -1,6 +1,6 @@
 # DeePMF
 Our code uses Python3, to ensure smooth running, please make sure your python environment is at least Python 3.9.19.
-We also used Optuna 
+We also used Optuna (https://optuna.org/). 
 Other package information is available in our paper. 
 A quick cheating command to install all packages using pip to run our code is:
 ```pip install numpy=1.26.4 pandas=2.2.2 matplotlib scikit-learn==1.5.1 scipy=1.13.1 optuna pm4py```
