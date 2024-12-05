@@ -73,5 +73,4 @@ NFOLD = CONFIG['Approach-Specific'].getint('nfold')
 TRIAL = CONFIG['Approach-Specific'].getint('trial')
 WINDOW = CONFIG['Approach-Specific'].getint('window') if CONFIG['Approach-Specific'].get('window') is None else CONFIG['Approach-Specific']['window']
 EVAL = CONFIG['Approach-Specific'].getboolean('eval')
-WEIGHT = process_values(CONFIG.get('Approach-Specific','condition_weight'), 'categorical')
 # --------- End of Approach Specific Parameters ---------
