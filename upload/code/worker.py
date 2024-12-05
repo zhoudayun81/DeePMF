@@ -36,12 +36,12 @@ def model_worker(inputfiles, inputdir, outputdir, log_path, model_dir, model_nam
             logger.info(f'Fold {fold+1}/{config_reader.NFOLD}')
 
             study_name=f'{filename[:-4]}_fold{fold+1}'
-            db_file = f'sqlite:///{model_name}.db'
+            db_file = f'sqlite:///{os.path.join(log_path, model_name)}.db'
             try:
                 study = optuna.load_study(study_name=study_name, storage=db_file)
                 logger.info(f"{study_name} loaded successfully.")
             except (OptunaError, KeyError) as e:
-                study = optuna.create_study(study_name=study_name, storage=db_file, directions=['minimize'], load_if_exists=True)
+                study = optuna.create_study(study_name=study_name, storage=db_file, direction='minimize', load_if_exists=True)
                 logger.info(f"{db_file} {study_name} created.")
             completed_trials = len([t for t in study.trials if t.state == TrialState.COMPLETE or t.state == TrialState.PRUNED])
             logger.info(f"Number of completed trials: {completed_trials} in study")
@@ -83,7 +83,7 @@ def model_worker(inputfiles, inputdir, outputdir, log_path, model_dir, model_nam
                 info_string = af.tostring(mat_info)
                 logger.info(f'Results: {info_string}')
                 af.saveDFMs(predicted_matrix_path, prediction[0], info_string)
-                logger.debug(f'{universal_name}. Prediction generated at:{predicted_matrix_path}') 
+                logger.debug(f'{universal_name}. Prediction generated at:{predicted_matrix_path}')
 #%% Test on no threads when run from this file
 if __name__ == '__main__':
     upload_folder = 'upload'
@@ -106,7 +106,6 @@ if __name__ == '__main__':
     MODEL_DIR = config_reader.MODEL_DIR if config_reader.MODEL_DIR else os.path.join(DOWNLOAD_DIR, model_folder)
     INPUTFILES = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith(f'_{config_reader.WINDOW}.npz') and not f.startswith('.')] if config_reader.WINDOW else [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith('.npz') and not f.startswith('.')] # if window is given, then only pick the time window files to run, otherwise run all
 
-    #for model in config_reader.MODEL:
-    model = 'vanilla'
-    model_worker(INPUTFILES, INPUT_DIR, OUTPUT_DIR, LOG_DIR, MODEL_DIR, model)
- # %%
+    for model in config_reader.MODEL:
+        model_worker(INPUTFILES, INPUT_DIR, OUTPUT_DIR, LOG_DIR, MODEL_DIR, model)
+# %%

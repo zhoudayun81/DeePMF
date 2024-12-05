@@ -22,7 +22,6 @@ if __name__ == '__main__':
     LOG_DIR = config_reader.LOG_DIR if config_reader.LOG_DIR else os.path.join(DOWNLOAD_DIR, log_folder)
     MODEL_DIR = config_reader.MODEL_DIR if config_reader.MODEL_DIR else os.path.join(DOWNLOAD_DIR, model_folder)
     INPUTFILES = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith(f'_{config_reader.WINDOW}.npz') and not f.startswith('.')] if config_reader.WINDOW else [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith('.npz') and not f.startswith('.')] # if window is given, then only pick the time window files to run, otherwise run all
-    THREADS = 6
 
     # Create a logger for the main process
     logger = multiprocessing.get_logger()
@@ -46,16 +45,10 @@ if __name__ == '__main__':
     logger.info('MODEL_DIR=%s'%MODEL_DIR)
     logger.info('Total %s number of files to experiment. INPUTFILES=%s'%(len(INPUTFILES), INPUTFILES))
 
-    if INPUTFILES and len(config_reader.MODEL)>1 and config_reader.OPTIMIZER and config_reader.LEARNING_RATE and config_reader.LOSS_FUNCTION:
+    if INPUTFILES and config_reader.MODEL and config_reader.OPTIMIZER and config_reader.LEARNING_RATE and config_reader.LOSS_FUNCTION:
         torch.multiprocessing.set_start_method('spawn')
         with multiprocessing.Pool() as pool:
             pool.starmap(worker.model_worker, [(INPUTFILES, INPUT_DIR, OUTPUT_DIR, LOG_DIR, MODEL_DIR, model) for model in config_reader.MODEL])
-    elif INPUTFILES and config_reader.MODEL and config_reader.OPTIMIZER and config_reader.LEARNING_RATE and config_reader.LOSS_FUNCTION:
-        file_groups = [INPUTFILES[i::THREADS] for i in range(THREADS)]
-        file_groups = [group for group in file_groups if len(group) > 0]
-        torch.multiprocessing.set_start_method('spawn')
-        with multiprocessing.Pool() as pool:
-            pool.starmap(worker.model_worker, [(files, INPUT_DIR, OUTPUT_DIR, LOG_DIR, MODEL_DIR, config_reader.MODEL[0]) for files in file_groups])
     else:
         logger.error('Required parameter(s) or input files missing! Check the configuration file! Program exit!')
         sys.exit()

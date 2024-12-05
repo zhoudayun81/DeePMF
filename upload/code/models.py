@@ -110,7 +110,6 @@ class VanillaNN(nn.Module):
             nn.Linear(modelparam.hidden_size, modelparam.hidden_size),
             nn.ReLU(),
             nn.Linear(modelparam.hidden_size, modelparam.matrix_size),
-            #nn.ReLU(),
         )
     def forward(self, x):
         x = self.vanilla(x)
@@ -125,7 +124,6 @@ class CustomCNN(nn.Module):
             nn.Conv1d(modelparam.hidden_size, 1, kernel_size=modelparam.kernel_size),  # Convolutional layer with 256 filters
             nn.ReLU(),                                  # Activation function
             nn.Linear(modelparam.matrix_size, modelparam.matrix_size),
-            #nn.ReLU(),
         )
     def forward(self, x):
         x = self.cnn(x)  # Pass input through the cnn
@@ -136,11 +134,9 @@ class CustomRNN(nn.Module):
         super(CustomRNN, self).__init__()
         self.rnn = nn.RNN(modelparam.matrix_size, modelparam.hidden_size, num_layers=modelparam.num_layers, dropout=modelparam.dropout_probability, batch_first=True)
         self.fc = nn.Linear(modelparam.hidden_size, modelparam.matrix_size)
-        #self.relu = nn.ReLU()
     def forward(self, x):
         out, _ = self.rnn(x)
         out = self.fc(out)
-        #out = self.relu(out)
         return out
     
 """ class CustomCNN(nn.Module):
@@ -180,11 +176,9 @@ class CustomGRU(nn.Module):
         super(CustomGRU, self).__init__()
         self.gru = nn.GRU(modelparam.matrix_size, modelparam.hidden_size, num_layers=modelparam.num_layers, dropout=modelparam.dropout_probability, batch_first=True)
         self.fc = nn.Linear(modelparam.hidden_size, modelparam.matrix_size)
-        #self.relu = nn.ReLU()
     def forward(self, x):
         out, _ = self.gru(x) 
         out = self.fc(out)
-        #out = self.relu(out)
         return out
 
 class CustomLSTM(nn.Module):
@@ -192,23 +186,17 @@ class CustomLSTM(nn.Module):
         super(CustomLSTM, self).__init__()
         self.lstm = nn.LSTM(modelparam.matrix_size, modelparam.hidden_size, num_layers=modelparam.num_layers, dropout=modelparam.dropout_probability, batch_first=True)
         self.fc = nn.Linear(modelparam.hidden_size, modelparam.matrix_size)
-        #self.relu = nn.ReLU()
     def forward(self, x):
         out, _ = self.lstm(x)  # Pass input through the lstm
         out = self.fc(out)
-        #out = self.relu(out)
         return out
     
 class CustomTransformer(nn.Module):
     def __init__(self, modelparam):
         super(CustomTransformer, self).__init__()
         self.transformer = nn.Transformer(modelparam.matrix_size, nhead=int(modelparam.matrix_size**0.5), num_encoder_layers=modelparam.num_encoder_layers, num_decoder_layers=modelparam.num_decoder_layers, dim_feedforward=modelparam.dim_feedforward, dropout=modelparam.dropout_probability, batch_first=True)
-        #self.fc = nn.Linear(modelparam.matrix_size, modelparam.matrix_size)
-        #self.relu = nn.ReLU()
     def forward(self, x, y):
         x = self.transformer(x, y)
-        #x = self.fc(x)
-        #x = self.relu(x)
         return x
 
 # Function to create model based on model_name parameter
@@ -240,7 +228,6 @@ def train_best(best_model_params, model_name, activity_info, train_loader):
     #num_layers = best_model_params['num_layers']
     epochs = best_model_params['epochs']
     criterion = loss_criterion(loss_function_name)
-    condition_weight = float(best_model_params['condition_weight'])
     if model_name == 'vanilla':
         modelparam = ModelParam(num_elements, hidden_size, config_reader.NUM_LAYERS, config_reader.BATCH_SIZE)
     elif model_name == 'cnn':
@@ -268,7 +255,7 @@ def train_best(best_model_params, model_name, activity_info, train_loader):
     optimizer = optimizer_function(optimizer_name, model, learning_rate)
     # Train and evaluate model
     for epoch in range(epochs):
-        train_model(model, model_name, train_loader, criterion, optimizer, condition_weight)
+        train_model(model, model_name, train_loader, criterion, optimizer)
     return model, criterion
 
 def prepare(trial, model_name, activity_info, loss_function_name, optimizer_name, learning_rate, hidden_size, num_layers, batch_size):
@@ -306,7 +293,6 @@ def objective(trial, model_name, activity_info, train_loader, val_loader):
     # Hyperparameters to optimize
     optimizer_name = trial.suggest_categorical('optimizer', config_reader.OPTIMIZER)
     loss_function_name = trial.suggest_categorical('loss_function', config_reader.LOSS_FUNCTION)
-    #loss_function_name = config_reader.LOSS_FUNCTION[0]
     learning_rate = trial.suggest_float('learning_rate', config_reader.LEARNING_RATE[0], config_reader.LEARNING_RATE[-1])
     epochs = trial.suggest_int('epochs', config_reader.EPOCHS[0], config_reader.EPOCHS[-1])
     #batch_size = trial.suggest_categorical('batch_size', [1])
@@ -314,26 +300,19 @@ def objective(trial, model_name, activity_info, train_loader, val_loader):
     hidden_size = trial.suggest_categorical('hidden_size', config_reader.HIDDEN_SIZE)
     #num_layers = trial.suggest_int('num_layers', config_reader.NUM_LAYERS[0], config_reader.NUM_LAYERS[-1])
     num_layers = config_reader.NUM_LAYERS
-    condition_weight = float(trial.suggest_categorical('condition_weight', config_reader.WEIGHT))
     criterion, model, optimizer = prepare(trial, model_name, activity_info, loss_function_name, optimizer_name, learning_rate, hidden_size, num_layers, batch_size)
     # Train and evaluate model
     for epoch in range(epochs):
-        train_model(model, model_name, train_loader, criterion, optimizer, condition_weight)
-        val_loss, _, _ = evaluate_model(model, model_name, val_loader, criterion, condition_weight)
-        """ trial.report(val_loss, epoch)
-        trial.report(sloss, epoch)
+        train_model(model, model_name, train_loader, criterion, optimizer)
+        val_loss, _, _ = evaluate_model(model, model_name, val_loader, criterion)
+        trial.report(val_loss, epoch)
         if trial.should_prune():
-            raise optuna.exceptions.TrialPruned() """
+            raise optuna.exceptions.TrialPruned()
     return val_loss
 
-# Define a projection function for parameter constraints
-def project_parameters(params, lower_bound=0.0):
-    with torch.no_grad():
-        for param in params:
-            param.clamp_(min=lower_bound)
 
 #%%
-def train_model(model, model_name, train_loader, criterion, optimizer, condition_weight):
+def train_model(model, model_name, train_loader, criterion, optimizer):
     model.train()
     for inputs, targets in train_loader:
         inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
@@ -342,14 +321,11 @@ def train_model(model, model_name, train_loader, criterion, optimizer, condition
             outputs = model(inputs, targets)
         else:
             outputs = model(inputs)
-        loss = consistent_loss(torch.round(outputs), targets, criterion, condition_weight)
-        #loss = criterion(outputs, targets)
+        loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
-        # Apply projection to keep parameters within the desired range
-        #project_parameters(model.parameters(), lower_bound=0.0)
 
-def evaluate_model(model, model_name, val_loader, criterion, condition_weight):
+def evaluate_model(model, model_name, val_loader, criterion):
     model.eval()
     val_loss = 0.0
     outputs = []
@@ -361,10 +337,9 @@ def evaluate_model(model, model_name, val_loader, criterion, condition_weight):
                 output = model(inputs, targets)
             else:
                 output = model(inputs)
-            loss = consistent_loss(torch.round(output), targets, criterion, condition_weight)
-            #loss = criterion(torch.round(output), targets)
+            loss = criterion(output, targets)
             val_loss += loss.item() * inputs.size(0)
-            outputs.append(torch.round(output).reshape(int(output.size(1)**0.5), int(output.size(1)**0.5)).cpu().numpy())
+            outputs.append(output.reshape(int(output.size(1)**0.5), int(output.size(1)**0.5)).cpu().numpy().round().astype(int))
             ground_truth.append(targets.reshape(int(targets.size(1)**0.5), int(targets.size(1)**0.5)).cpu().numpy())
     return val_loss/len(val_loader.dataset), outputs, ground_truth
 
@@ -376,48 +351,8 @@ def save_state_dict(state_dict, dictpath, content, textpath):
     with open(textpath, 'w') as output:
         output.write(af.tostring(content))
 
-def consistent_loss(output, targets, criterion, condition_weight):
-    loss = criterion(output, targets)
-    N = int(output.size(1)**0.5)
-    matrix = output.reshape(-1, N, N)
-    matrix = torch.clamp(matrix, min=0)
-    row_sums = torch.sum(matrix, dim=2)
-    column_sums = torch.sum(matrix, dim=1)
-    ratios = torch.minimum(row_sums, column_sums) / torch.maximum(row_sums, column_sums)
-    ratios = torch.nan_to_num(ratios, nan=1)
-    consistency_score = torch.mean(ratios)
-    total_loss = (1 - consistency_score) * condition_weight + loss * (1 - condition_weight)
-    return total_loss
-
-def consistent_loss(output, target, criterion):
-    # Compute standard loss (between model output and target)
-    original_loss = criterion(output, target)
-    # Reshape output back to N x N matrix
-    N = int(output.size(1)**0.5)
-    output_matrix = output.reshape(-1, N, N)
-    row_sums = torch.sum(output_matrix, dim=2)
-    column_sums = torch.sum(output_matrix, dim=1)
-    condition_loss = torch.mean(torch.square(row_sums - column_sums))
-    total_loss = original_loss + torch.sqrt(condition_loss) #+ custom_rmse_loss(output, target)
-    return total_loss
-
-def custom_rmse_loss(output, target):
-    # Create a mask where either the prediction is non-zero and target is zero, or vice versa
-    mask = ((output != 0) & (target == 0)) | ((output == 0) & (target != 0))
-    # Apply the mask to extract relevant values
-    pred_values = output[mask]
-    target_values = target[mask]
-    # Calculate squared differences
-    squared_diff = (pred_values - target_values) ** 2
-    # Calculate the RMSE (root of mean of squared differences)
-    if len(squared_diff) > 0:
-        rmse = torch.sqrt(torch.mean(squared_diff))
-    else:
-        rmse = torch.tensor(0.0)  # If no relevant values, return 0 loss
-    return rmse
-
 # define loss function
-def loss_criterion(loss_function_name, param=None):
+def loss_criterion(loss_function_name):
     #by default, use mean absolute error (MAE)
     criterion = nn.L1Loss()
     if loss_function_name=='L1Loss':
@@ -435,7 +370,7 @@ def loss_criterion(loss_function_name, param=None):
     elif loss_function_name=='GaussianNLLLoss':
         criterion = nn.GaussianNLLLoss() # used differently
     elif loss_function_name=='KLDivLoss':
-        criterion = nn.KLDivLoss(reduction="batchmean")
+        criterion = nn.KLDivLoss() 
     elif loss_function_name=='BCELoss':
         criterion = nn.BCELoss()
     elif loss_function_name=='BCEWithLogitsLoss':
@@ -493,4 +428,3 @@ def optimizer_function(optimizer_name, model, learning_rate):
     elif optimizer_name=='Rprop':
         optimiser = optim.Rprop(model.parameters(), lr=learning_rate)
     return optimiser
-# %%
