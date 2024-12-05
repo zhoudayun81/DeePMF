@@ -72,8 +72,7 @@ def model_worker(inputfiles, inputdir, outputdir, log_path, model_dir, model_nam
                 best_model.eval()
                 # with torch.no_grad(): is called in test method
                 # ----------------- Testing -----------------
-                condition_weight = float(best_model_params['condition_weight'])
-                test_loss, prediction, ground_truths = m.evaluate_model(best_model, model_name, test_loader, criterion, condition_weight)
+                test_loss, prediction, ground_truths = m.evaluate_model(best_model, model_name, test_loader, criterion)
                 measures = af.measures(ground_truths[0], prediction[0])
                 predicted_matrix_path = os.path.join(outputdir,universal_name)
                 mat_info = []
