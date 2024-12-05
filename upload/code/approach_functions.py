@@ -138,7 +138,6 @@ def tostring(my_list):
             string_list.append(str(item))  # Convert dictionary to string representation
         else:
             string_list.append(item)  # Keep strings as they are
-
     # Join elements into a single string with a separator
     result_string = ', '.join(str(element) for element in string_list)
     return result_string
@@ -182,7 +181,8 @@ def measures(ground_truth_mat, forecast_mat):
         maev = mae(ground_truth_mat, forecast_mat)
         mapev = mape(ground_truth_mat, forecast_mat)
         mse = np.mean((forecast_mat - ground_truth_mat)**2)
-    return {'rmsd':rmsdv, 'mae':maev, 'mape':mapev, 'mse':mse}
+        consistency_ratio = consistency(forecast_mat)
+    return {'rmsd':rmsdv, 'mae':maev, 'mape':mapev, 'mse':mse, 'consistency':consistency_ratio}
 
 def rmsd(ground_truth_mat, forecast_mat):
     rmsd = float('inf')
@@ -215,3 +215,15 @@ def mape(ground_truth_mat, forecast_mat):
         # Calculate MAPE
         mape = np.mean(abs_percentage_error) * 100
     return mape
+
+def consistency(dfm):
+    # Ensure the matrix is square
+    consistency_score = 0.0
+    if dfm.shape[0] == dfm.shape[1]:
+        dfm[dfm < 0] = 0
+        row_sums = np.sum(dfm, axis=1)
+        column_sums = np.sum(dfm, axis=0)
+        ratios = np.minimum(row_sums, column_sums) / np.maximum(row_sums, column_sums)
+        ratios = np.nan_to_num(ratios, nan=1)
+        consistency_score = np.mean(ratios)
+    return consistency_score

@@ -18,10 +18,6 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class One2OneDataset(Dataset):
     def __init__(self, data):
-        """
-        Args:
-            data (list of N*N matrices): The raw data where each element is an N*N matrix.
-        """
         self.data = data
     def __len__(self):
         return len(self.data) - 1
@@ -37,15 +33,6 @@ class CustomTimeSeriesSplit:
         self.val_size = val_size
 
     def split(self, indices):
-        """
-        Split indices into training, validation, and test sets.
-        
-        Args:
-            indices (list): List of indices to be split.
-            
-        Yields:
-            tuple: (train_indices, val_indices, test_indices)
-        """
         dataset_size = len(indices)
         chunk_size = dataset_size // self.n_splits
         if chunk_size <= 0:
@@ -65,26 +52,21 @@ class CustomTimeSeriesSplit:
 def get_data_loaders(data, n_splits, batch_size):
     dataset_size = len(data)
     indices = list(range(dataset_size))
-    
     tscv = CustomTimeSeriesSplit(n_splits=n_splits)
     train_loaders = []
     val_loaders = []
     test_loaders = []
-
     for fold, (train_index, val_index, test_indices) in enumerate(tscv.split(indices)):
         fold_train_dataset = Subset(data, train_index)
         fold_val_dataset = Subset(data, val_index)
         fold_test_dataset = Subset(data, test_indices)
-        
         # Create data loaders
         fold_train_loader = DataLoader(fold_train_dataset, batch_size=batch_size, shuffle=False)
         fold_val_loader = DataLoader(fold_val_dataset, batch_size=batch_size, shuffle=False)
         fold_test_loader = DataLoader(fold_test_dataset, batch_size=batch_size, shuffle=False)
-        
         train_loaders.append(fold_train_loader)
         val_loaders.append(fold_val_loader)
         test_loaders.append(fold_test_loader)
-    
     return train_loaders, val_loaders, test_loaders
 
 class ModelParam:
@@ -119,9 +101,9 @@ class CustomCNN(nn.Module):
     def __init__(self, modelparam):
         super(CustomCNN, self).__init__()
         self.cnn = nn.Sequential(
-            nn.Conv1d(1, modelparam.hidden_size, kernel_size=modelparam.kernel_size),  # Convolutional layer with 256 filters
+            nn.Conv1d(1, modelparam.hidden_size, kernel_size=modelparam.kernel_size),  # Convolutional layer
             nn.ReLU(),                                  # Activation function
-            nn.Conv1d(modelparam.hidden_size, 1, kernel_size=modelparam.kernel_size),  # Convolutional layer with 256 filters
+            nn.Conv1d(modelparam.hidden_size, 1, kernel_size=modelparam.kernel_size),  # Convolutional layer
             nn.ReLU(),                                  # Activation function
             nn.Linear(modelparam.matrix_size, modelparam.matrix_size),
         )
@@ -139,38 +121,6 @@ class CustomRNN(nn.Module):
         out = self.fc(out)
         return out
     
-""" class CustomCNN(nn.Module):
-    def __init__(self, modelparam):
-        super(CustomCNN, self).__init__()
-        # List to hold the convolutional layers
-        layers = []
-        current_channels = 1
-        for i in range(modelparam.num_layers):
-            layers.append(nn.Conv1d(current_channels, modelparam.hidden_size, kernel_size=modelparam.kernel_size))
-            layers.append(nn.ReLU())
-            current_channels = modelparam.hidden_size  # Update channels for the next layer
-        # Final convolutional layer to match the input channels
-        layers.append(nn.Conv1d(current_channels, 1, kernel_size=modelparam.kernel_size))
-        layers.append(nn.ReLU())
-        self.cnn = nn.Sequential(*layers)
-        # Calculate the size of the output after convolutions
-        self.final_size = self._calculate_output_size(1, modelparam.matrix_size, modelparam.num_layers)
-        self.fc = nn.Linear(self.final_size, modelparam.matrix_size)
-    def _calculate_output_size(self, Lin, kernel_size, num_layers):
-        # Compute the size after convolution
-        size = Lin
-        for _ in range(num_layers):
-            size = (size - kernel_size) + 1
-        # Size after final convolution
-        size = (size - kernel_size) + 1
-        return size
-    def forward(self, x):
-        x = self.cnn(x)
-        if self.fc is not None:
-            x = x.view(x.size(0), -1)  # Flatten the tensor for the fully connected layer
-            x = self.fc(x)
-        return x """
-
 class CustomGRU(nn.Module):
     def __init__(self, modelparam):
         super(CustomGRU, self).__init__()
@@ -210,7 +160,6 @@ def create_model(model_name, matrix_size):
         'vanilla': VanillaNN,
         'transformer': CustomTransformer,
     }
-    
     # Check if the model_name exists in model_mapping
     if model_name in model_mapping:
         # Instantiate the corresponding model class
@@ -309,7 +258,6 @@ def objective(trial, model_name, activity_info, train_loader, val_loader):
         if trial.should_prune():
             raise optuna.exceptions.TrialPruned()
     return val_loss
-
 
 #%%
 def train_model(model, model_name, train_loader, criterion, optimizer):

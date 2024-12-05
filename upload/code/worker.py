@@ -84,28 +84,3 @@ def model_worker(inputfiles, inputdir, outputdir, log_path, model_dir, model_nam
                 logger.info(f'Results: {info_string}')
                 af.saveDFMs(predicted_matrix_path, prediction[0], info_string)
                 logger.debug(f'{universal_name}. Prediction generated at:{predicted_matrix_path}')
-#%% Test on no threads when run from this file
-if __name__ == '__main__':
-    upload_folder = 'upload'
-    download_folder = 'download'
-    input_folder = 'input'
-    code_folder = 'code'
-    output_folder = 'output'
-    log_folder = 'log'
-    model_folder = 'model'
-
-    # The project working directory on Spartan should be: /data/gpfs/projects/punim1925/xxx
-    CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
-    PROJECT_DIR = os.path.dirname(os.path.dirname(CURRENT_FOLDER))
-    DOWNLOAD_DIR = os.path.join(PROJECT_DIR, download_folder)
-    UPLOAD_DIR = os.path.join(PROJECT_DIR, upload_folder)
-    # The code is by default that directory traversal doesn't apply.
-    INPUT_DIR = config_reader.INPUT_DIR if config_reader.INPUT_DIR else os.path.join(UPLOAD_DIR, input_folder)
-    OUTPUT_DIR = config_reader.OUTPUT_DIR if config_reader.OUTPUT_DIR else os.path.join(DOWNLOAD_DIR, output_folder)
-    LOG_DIR = config_reader.LOG_DIR if config_reader.LOG_DIR else os.path.join(DOWNLOAD_DIR, log_folder)
-    MODEL_DIR = config_reader.MODEL_DIR if config_reader.MODEL_DIR else os.path.join(DOWNLOAD_DIR, model_folder)
-    INPUTFILES = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith(f'_{config_reader.WINDOW}.npz') and not f.startswith('.')] if config_reader.WINDOW else [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f)) and f.endswith('.npz') and not f.startswith('.')] # if window is given, then only pick the time window files to run, otherwise run all
-
-    for model in config_reader.MODEL:
-        model_worker(INPUTFILES, INPUT_DIR, OUTPUT_DIR, LOG_DIR, MODEL_DIR, model)
-# %%

@@ -71,6 +71,5 @@ DROPOUT_PROBABILITY = process_values(CONFIG.get('Hyperparameters','dropout_proba
 # --------- Approach Specific Parameters ---------
 NFOLD = CONFIG['Approach-Specific'].getint('nfold')
 TRIAL = CONFIG['Approach-Specific'].getint('trial')
-WINDOW = CONFIG['Approach-Specific'].getint('window') if CONFIG['Approach-Specific'].get('window') is None else CONFIG['Approach-Specific']['window']
 EVAL = CONFIG['Approach-Specific'].getboolean('eval')
 # --------- End of Approach Specific Parameters ---------
