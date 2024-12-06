@@ -18,6 +18,10 @@ Please make sure you keep the folder structures and go to [code folder](https://
 <button onclick="copyToClipboard('#install-command')"></button> to initiate the experiment run.
 
 You can modify the settings to different parameters for other experiment, and we left the [configuration file](https://github.com/zhoudayun81/DeePMF/tree/main/upload/code/config.ini) (```.\upload\code\config.ini```) as the default settings that we used and described in our paper. Explanations are provided in the file for each parameter that may not be intuitive to understand.
+
+## Accessing results
+You can find our experiment prediction outputs in the [output folder](https://github.com/zhoudayun81/DeePMF/tree/main/download/output) and we summarize the results in excels in the [result folder](https://github.com/zhoudayun81/DeePMF/tree/main/download/result).
+For interpretations to the results, please refer to our paper.
 <hr />
 
 Please note that our licence is under GNU Affero General Public License v3.0. 
