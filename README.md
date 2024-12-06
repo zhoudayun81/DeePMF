@@ -18,7 +18,7 @@ Please make sure you keep the folder structures and go to folder ```.\upload\cod
 <button onclick="copyToClipboard('#install-command')"></button> to initiate the experiment run.
 
 You can modify the settings to different parameters for other experiment, and we left the ```.\upload\code\config.ini``` file as the default settings that we used and described in our paper. Explanations are provided in the file for each parameter that may not be intuitive to understand.
-
 <hr />
+
 Please note that our licence is under GNU Affero General Public License v3.0. 
 If you need assistance in running the code or you are interested in the experiment or further collaboration, feel free to contact [Wenjun](mailto:wenjun.zhou@unimelb.edu.au?subject=[DeePMF]).
