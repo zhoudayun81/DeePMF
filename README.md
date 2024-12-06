@@ -15,7 +15,12 @@ Please make sure you keep the folder structures and go to [code folder](https://
 <pre>
   <code id="install-command">python3 main.py</code>
 </pre>
-<button onclick="copyToClipboard('#install-command')"></button> to initiate the experiment run.
+<button onclick="copyToClipboard('#install-command')"></button> to initiate the NN experiment run.
+For baseline models, please stay in the same directory and run command:
+<pre>
+  <code id="install-command">python3 mlbaselines.py</code>
+</pre>
+<button onclick="copyToClipboard('#install-command')"></button>.
 
 You can modify the settings to different parameters for other experiment, and we left the [configuration file](https://github.com/zhoudayun81/DeePMF/tree/main/upload/code/config.ini) (```.\upload\code\config.ini```) as the default settings that we used and described in our paper. Explanations are provided in the file for each parameter that may not be intuitive to understand.
 
