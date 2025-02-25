@@ -6,7 +6,7 @@ We also used Optuna (https://optuna.org/). Other package information is availabl
 ## Running experiment
 A quick cheating command to install all packages using pip to run our code is: 
 <pre>
-  <code id="install-command">pip install numpy=1.26.4 pandas=2.2.2 matplotlib scikit-learn==1.5.1 scipy=1.13.1 optuna pm4py</code>
+  <code id="install-command">pip install numpy==1.26.4 pandas==2.2.2 matplotlib scikit-learn==1.5.1 scipy==1.13.1 optuna pm4py</code>
 </pre>
 <button onclick="copyToClipboard('#install-command')"></button>
 This should allow you to install all the required packages at once.
